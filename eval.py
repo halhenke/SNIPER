@@ -30,14 +30,6 @@ from demo.nms import nms
 import pickle
 from symbols.faster.resnet_mx_101_e2e_3k_demo import resnet_mx_101_e2e_3k_demo, checkpoint_callback
 
-MODEL_PREFIX = "sniper-linear-classifier"
-MODEL_FILE = "./demo/cache/" + MODEL_PREFIX + ".json"
-PARAM_FILE = "./demo/cache/" + MODEL_PREFIX + "-param.json"
-MODEL_EPOCH = 250
-BATCH_SIZE = 32
-LEARNING_RATE = 0.001
-MOMENTUM = 0.9
-
 def parse_args():
     parser = argparse.ArgumentParser(description='Demo')
     parser.add_argument('--thresh', help='Output threshold', default=0.5)
@@ -160,27 +152,14 @@ def main():
     class_names = ()
     for one in dir_names:
         class_names = class_names + (one,)
+    linear_classifier, eval_list = train_model(class_names, image_num_per_class, batch_size=100, learning_rate=0.001, momentum=0.9, num_epoch=250)
 
-    linear_classifier, eval_list = train_model(class_names, image_num_per_class, batch_size=BATCH_SIZE, learning_rate=LEARNING_RATE, momentum=MOMENTUM, num_epoch=MODEL_EPOCH)
-
+    # NOTE: EVAL is populated here after training
+    # - We take a bunch of stuff from our normal data list
     eval_data = [data[i] for i in eval_list]
     eval_im_list = [im_list[i] for i in eval_list]
     im_info_list_eval = [im_info_list[i] for i in eval_list]
     image_names_eval = [image_names_full[i] for i in eval_list]
-
-    # linear_classifier.symbol.save(MODEL_FILE)
-    # linear_classifier.save_params(PARAM_FILE)
-
-    linear_classifier.save_checkpoint(MODEL_PREFIX, MODEL_EPOCH)
-
-    # linear_classifier.save(MODEL_PREFIX, MODEL_EPOCH)
-    # with open("./demo/cache/" + MODEL_FILE, 'wb') as p:
-    #     pickle.dump(linear_classifier, p, protocol=2)
-
-    ################################################################
-    # NOT TEST
-    ################################################################
-
 
     # extract roi_pooled features for evaluation / visualization; if already pickled, skip
     rois = []
@@ -204,6 +183,12 @@ def main():
 
     else:
         # get eval data based on the train val split
+
+        EVAL_FOLDER = "./portal/eval_images/"
+        eval_image_names = [for a in listdir(EVAL_FOLDER) if isfile(join(EVAL_FOLDER, a)) and a.split('.')[-1] == 'jpg']
+        eval_image_names_full = image_names_full + eval_image_names
+        eval_image_num_per_class.append(len(eval_image_names))
+
         count = 0
         total = len(eval_data)
         print("Extracting roipooled features of %d images..." %(total))
@@ -243,8 +228,8 @@ def main():
     # classify the rois
     rois_cls = classify_rois(linear_classifier, roipooled_features)
 
-    for idx in range(len(rois)):
-        im_name = image_names_eval[idx]
+    for eval_idx in range(len(rois)):
+        eval_im_name = eval_image_names_eval[idx]
         xcls_scores = process_mul_scores(objectness_scores[idx][0], rois_cls[idx])
         boxes = rois[idx].astype('f')
         xcls_scores = xcls_scores.astype('f')
