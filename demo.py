@@ -30,6 +30,14 @@ from demo.nms import nms
 import pickle
 from symbols.faster.resnet_mx_101_e2e_3k_demo import resnet_mx_101_e2e_3k_demo, checkpoint_callback
 
+MODEL_PREFIX = "sniper-linear-classifier"
+MODEL_FILE = "./demo/cache/" + MODEL_PREFIX + ".json"
+PARAM_FILE = "./demo/cache/" + MODEL_PREFIX + "-param.json"
+MODEL_EPOCH = 250
+BATCH_SIZE = 32
+LEARNING_RATE = 0.001
+MOMENTUM = 0.9
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Demo')
     parser.add_argument('--thresh', help='Output threshold', default=0.5)
@@ -113,7 +121,7 @@ def main():
     # set model
     mod = MutableModule(sym, data_names, label_names, context=[mx.gpu(0)], max_data_shapes=max_data_shape)
     mod.bind(provide_data, provide_label, for_training=False)
-    mod.init_params(arg_params=arg_params, aux_params=aux_params)    
+    mod.init_params(arg_params=arg_params, aux_params=aux_params)
 
     # extract feature extraction; if feature already pickled, skip
     if os.path.exists("./demo/cache/indices.pkl") and os.path.exists("./demo/cache/features.pkl"):
@@ -152,7 +160,9 @@ def main():
     class_names = ()
     for one in dir_names:
         class_names = class_names + (one,)
-    linear_classifier, eval_list = train_model(class_names, image_num_per_class, batch_size=100, learning_rate=0.001, momentum=0.9, num_epoch=250)
+
+    linear_classifier, eval_list = train_model(class_names, image_num_per_class, batch_size=BATCH_SIZE, learning_rate=LEARNING_RATE, momentum=MOMENTUM, num_epoch=MODEL_EPOCH)
+
     eval_data = [data[i] for i in eval_list]
     eval_im_list = [im_list[i] for i in eval_list]
     im_info_list_eval = [im_info_list[i] for i in eval_list]
