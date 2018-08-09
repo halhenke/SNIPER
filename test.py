@@ -30,6 +30,8 @@ from demo.nms import nms
 import pickle
 from symbols.faster.resnet_mx_101_e2e_3k_demo import resnet_mx_101_e2e_3k_demo, checkpoint_callback
 
+OUT_DIR = 'test'
+
 MODEL_PREFIX = "sniper-linear-classifier"
 MODEL_FILE = "./demo/cache/" + MODEL_PREFIX + ".json"
 MODEL_EPOCH = 250
@@ -323,7 +325,7 @@ def main():
         print 'testing {}'.format(im_name)
         # visualize
         im = cv2.cvtColor(test_im_list[idx].astype(np.uint8), cv2.COLOR_BGR2RGB)
-        vis_boxes(im_name, im, dets_nms, im_info_list_test[idx][0][2], config, args.thresh, dir_names)
+        vis_boxes(im_name, OUT_DIR, im, dets_nms, im_info_list_test[idx][0][2], config, args.thresh, dir_names)
 
     print('Done')
 

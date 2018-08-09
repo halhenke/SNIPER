@@ -15,6 +15,8 @@ os.environ['MXNET_ENABLE_GPU_P2P'] = '0'
 cur_path = os.path.abspath(os.path.dirname(__file__))
 update_config(cur_path + '/configs/faster/res101_mx_3k.yml')
 
+OUT_DIR = 'image'
+
 import mxnet as mx
 from symbols import *
 
@@ -261,7 +263,7 @@ def main():
         print 'testing {}'.format(im_name)
         # visualize
         im = cv2.cvtColor(eval_im_list[idx].astype(np.uint8), cv2.COLOR_BGR2RGB)
-        vis_boxes(im_name, im, dets_nms, im_info_list_eval[idx][0][2], config, args.thresh, dir_names)
+        vis_boxes(im_name, OUT_DIR, im, dets_nms, im_info_list_eval[idx][0][2], config, args.thresh, dir_names)
 
     print('Done')
 

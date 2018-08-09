@@ -17,6 +17,8 @@ os.environ['MXNET_ENABLE_GPU_P2P'] = '0'
 cur_path = os.path.abspath(os.path.dirname(__file__))
 update_config(cur_path + '/configs/faster/res101_mx_3k.yml')
 
+OUT_DIR = 'road-test'
+
 import mxnet as mx
 from symbols import *
 
@@ -105,8 +107,8 @@ def get_features_and_indices(data, mod, image_names_full):
 
 def symbol_prep(data, sym):
     label_names = []
-    data = [[mx.nd.array(data[i][name]) for name in DATA_NAMES]
-            for i in xrange(len(data))]
+    # data = [[mx.nd.array(data[i][name]) for name in DATA_NAMES]
+    #         for i in xrange(len(data))]
     max_data_shape = [
         [('data', (1, 3, max([v[0] for v in config.TEST.SCALES]), max([v[1] for v in config.TEST.SCALES])))]]
     provide_data = [[(k, v.shape) for k, v in zip(DATA_NAMES, data[i])]
@@ -128,8 +130,8 @@ def symbol_prep(data, sym):
 
 def score_data(image_names_test, objectness_scores, rois, rois_cls, args, im_info_list, train_dir_names, im_list):
 
-    import ipdb
-    ipdb.set_trace()
+    # import ipdb
+    # ipdb.set_trace()
 
     for test_idx in range(len(rois)):
         test_im_name = image_names_test[test_idx]
@@ -151,7 +153,7 @@ def score_data(image_names_test, objectness_scores, rois, rois_cls, args, im_inf
         # visualize
         im = cv2.cvtColor(im_list[test_idx].astype(
             np.uint8), cv2.COLOR_BGR2RGB)
-        vis_boxes(test_im_name, im, dets_nms,
+        vis_boxes(test_im_name, OUT_DIR, im, dets_nms,
                   im_info_list[test_idx][0][2], config, args.thresh, train_dir_names)
 
 
@@ -238,7 +240,7 @@ def main():
     sym_inst = resnet_mx_101_e2e_3k_demo()
     sym = sym_inst.get_symbol_rcnn(config, is_train=False)
 
-    check_cached_data_exists()
+    # check_cached_data_exists()
 
     # load data
     from os import listdir
@@ -277,7 +279,7 @@ def main():
             im_list,
             im_info_list,
             data,
-            '/demo/image/')
+            './demo/image/')
 
         f0 = open("./demo/cache/images.pkl", 'wb')
         pickle.dump(im_list, f0, protocol=2)
@@ -286,6 +288,8 @@ def main():
         pickle.dump(data, f0, protocol=2)
         f0.close()
 
+    data = [[mx.nd.array(data[i][name]) for name in DATA_NAMES]
+            for i in xrange(len(data))]
     # symbol preparation
     mod, data = symbol_prep(data, sym)
 

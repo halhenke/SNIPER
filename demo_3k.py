@@ -15,6 +15,8 @@ os.environ['MXNET_ENABLE_GPU_P2P'] = '0'
 cur_path = os.path.abspath(os.path.dirname(__file__))
 update_config(cur_path + '/configs/faster/res101_mx_3k.yml')
 
+OUT_DIR = 'image_3k'
+
 import mxnet as mx
 from symbols import *
 
@@ -92,7 +94,7 @@ def main():
     # set model
     mod = MutableModule(sym, data_names, label_names, context=[mx.gpu(0)], max_data_shapes=max_data_shape)
     mod.bind(provide_data, provide_label, for_training=False)
-    mod.init_params(arg_params=arg_params, aux_params=aux_params)   
+    mod.init_params(arg_params=arg_params, aux_params=aux_params)
 
     # load the [index] - [class name] matching file
     with open("./data/ILSVRC2014_devkit/data/3kcls_1C_words.txt",'rb') as f:
@@ -131,7 +133,7 @@ def main():
         print 'testing {} time spent before post-processing: {:.4f}s'.format(im_name, t)
         # visualize
         im = cv2.cvtColor(im_list[idx].astype(np.uint8), cv2.COLOR_BGR2RGB)
-        vis_boxes(im_name, im, dets_nms, im_info_list[idx][0][2], config, args.thresh, index2words)
+        vis_boxes(im_name, OUT_DIR, im, dets_nms, im_info_list[idx][0][2], config, args.thresh, index2words)
 
 
     print 'done'

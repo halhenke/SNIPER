@@ -17,7 +17,7 @@ def get_symbol(logger, num_of_classes):
     fc1 = mx.sym.FullyConnected(data=X, name='fc1', num_hidden=num_of_classes)
     softmax = mx.sym.SoftmaxOutput(data=fc1, label=Y, name='softmax')
 
-    model = mx.mod.Module(symbol=softmax, data_names=['data'], label_names=['softmax_label'], 
+    model = mx.mod.Module(symbol=softmax, data_names=['data'], label_names=['softmax_label'],
     						logger=logger, context=mx.gpu())
     return model
 
@@ -45,6 +45,7 @@ def split_train_val(data, labels, indices, num_of_classes, num_val_per_class):
 	eval_labels = []
 	removed_list = []
 	indices_eval = []
+	# NOTE: This assumes we have an equal number of samples per class
 	for i in range(num_of_classes):
 		splits.append(100 * i)
 	for i in range(num_of_classes):
@@ -109,16 +110,16 @@ def train_model(class_names, image_number_per_class, batch_size=100, learning_ra
     logger.setLevel(logging.INFO)
 
     model = get_symbol(logger, num_of_classes)
-    model.fit(train_iter, eval_iter, optimizer='sgd', 
+    model.fit(train_iter, eval_iter, optimizer='sgd',
                 optimizer_params={'learning_rate':learning_rate, 'momentum': momentum},
             	num_epoch=num_epoch, eval_metric='acc', batch_end_callback = mx.callback.Speedometer(batch_size, 2))
-    
+
     return model, eval_list
 
 
 def classify_rois(model, roipooled_features):
     """
-    evaluate the rois 
+    evaluate the rois
     """
     rois_classification = []
 
